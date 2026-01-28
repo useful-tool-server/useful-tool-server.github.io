@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Useful Tool Site</title>
+    <link rel="stylesheet" href="system/css/main.css">
+    <script src="system/js/common.js" defer></script>
+</head>
+<body class="dark-theme">
+    <header>
+        <div class="header-container">
+            <h1>Useful Tool Site</h1>
+            <div id="auth-status">
+                </div>
+        </div>
+    </header>
+
+    <main>
+        <section id="hero">
+            <h2>日常を便利にするツール集</h2>
+            <p>シンプルで高速なオンラインツールを提供します。</p>
+        </section>
+
+        <section id="tool-list" class="grid-container">
+            <a href="tool/timer.html" class="tool-card">
+                <div class="icon">⏲️</div>
+                <h3>タイマー</h3>
+                <p>全画面対応のカウントダウン</p>
+            </a>
+            <a href="tool/stopwatch.html" class="tool-card">
+                <div class="icon">⏱️</div>
+                <h3>ストップウォッチ</h3>
+                <p>0.01秒精度の計測</p>
+            </a>
+            <a href="tool/text_count.html" class="tool-card">
+                <div class="icon">📝</div>
+                <h3>文字数カウント</h3>
+                <p>文字・単語・行数を計測</p>
+            </a>
+            <a href="tool/roulette.html" class="tool-card">
+                <div class="icon">🎯</div>
+                <h3>ルーレット</h3>
+                <p>項目を自由にカスタマイズ</p>
+            </a>
+            <a href="tool/qr_code/creation.html" class="tool-card">
+                <div class="icon">📱</div>
+                <h3>QRコード作成</h3>
+                <p>OS別の分岐設定も可能</p>
+            </a>
+            <a href="tool/memo.html" class="tool-card">
+                <div class="icon">📓</div>
+                <h3>メモ帳</h3>
+                <p>シンプルなテキスト保存</p>
+            </a>
+
+            <div id="secret-tools" style="display: none;">
+                <a href="tool/memo_ex.html" class="tool-card secret">
+                    <div class="icon">📑</div>
+                    <h3>メモ帳 (拡張版)</h3>
+                    <p>高度なデータ管理と対戦機能</p>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Useful Tool Site - Admin Managed</p>
+    </footer>
+
+    <script>
+        // index.html 専用の表示制御ロジック
+        document.addEventListener('DOMContentLoaded', () => {
+            const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+            const authStatus = document.getElementById('auth-status');
+            const secretTools = document.getElementById('secret-tools');
+
+            if (isLoggedIn) {
+                authStatus.innerHTML = '<button onclick="logout()" class="btn-secondary">ログアウト</button>';
+                secretTools.style.display = 'contents'; // ログイン時は表示
+            } else {
+                authStatus.innerHTML = '<a href="login.html" class="btn-primary">ログイン</a>';
+            }
+        });
+
+        function logout() {
+            sessionStorage.clear();
+            window.location.reload();
+        }
+    </script>
+</body>
+</html>

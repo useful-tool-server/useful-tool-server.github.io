@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ログイン - Useful Tool Site</title>
+    <link rel="stylesheet" href="system/css/main.css">
+    <style>
+        /* ログイン画面固有のスタイル */
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 2rem;
+            background-color: #121212;
+            border: 1px solid #333;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .login-form h2 {
+            margin-bottom: 1.5rem;
+            text-align: center;
+            color: #fff;
+        }
+        .input-group {
+            margin-bottom: 1rem;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background-color: #000;
+            color: #fff;
+            outline: none;
+        }
+        .input-group input:focus {
+            border-color: #00f0ff;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 0.8rem;
+            margin-top: 1rem;
+            background-color: #fff;
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .login-btn:hover {
+            opacity: 0.8;
+        }
+        .error-msg {
+            color: #ff4444;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body class="dark-theme">
+    <div class="login-container">
+        <form class="login-form" id="loginForm">
+            <h2>Sign In</h2>
+            <div class="input-group">
+                <label for="username">ユーザー名</label>
+                <input type="text" id="username" required autocomplete="username">
+            </div>
+            <div class="input-group">
+                <label for="password">パスワード</label>
+                <input type="password" id="password" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="login-btn">ログイン</button>
+            <div id="errorMsg" class="error-msg">ユーザー名またはパスワードが正しくありません。</div>
+        </form>
+        <p style="text-align: center; margin-top: 1.5rem; font-size: 0.8rem; color: #555;">
+            アカウントは運営によって管理されています。
+        </p>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMsg');
+
+            try {
+                // Ubuntuサーバーの認証エンドポイントへリクエスト
+                // 公開時は localhost を実際のドメイン/IPに書き換えます
+                const response = await fetch('http://YOUR_UBUNTU_IP:3000/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // ログイン成功: セッションに状態を保存
+                    sessionStorage.setItem('isLoggedIn', 'true');
+                    sessionStorage.setItem('username', username);
+                    sessionStorage.setItem('token', data.token); // JWTなどのトークン
+                    
+                    // トップページへ遷移
+                    window.location.href = 'index.html';
+                } else {
+                    errorMsg.style.display = 'block';
+                }
+            } catch (err) {
+                console.error('Login error:', err);
+                alert('サーバーに接続できませんでした。');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Useful Tool Site</title>
+    <link rel="stylesheet" href="../system/css/main.css">
+    <script src="../system/js/common.js" defer></script>
+    <style>
+        .admin-main {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #121212;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .user-table th, .user-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #222;
+        }
+        .user-table th {
+            background-color: #1a1a1a;
+            color: #888;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        .user-table tr:hover {
+            background-color: #1a1a1a;
+        }
+        .action-btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            margin-right: 5px;
+            border: none;
+            cursor: pointer;
+        }
+        .edit-btn { background-color: #333; color: #fff; }
+        .delete-btn { background-color: #442222; color: #ff8888; }
+        .create-btn { background-color: #00f0ff; color: #000; font-weight: bold; }
+    </style>
+</head>
+<body class="dark-theme">
+    <div class="admin-main">
+        <header class="admin-header">
+            <div>
+                <h1>Admin Dashboard</h1>
+                <p style="color: #666;">ユーザーアカウントの作成と管理</p>
+            </div>
+            <a href="user_create.html" class="action-btn create-btn">+ 新規ユーザー作成</a>
+        </header>
+
+        <section class="user-list-section">
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>ユーザー名</th>
+                        <th>役割</th>
+                        <th>最終ログイン</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody">
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #555;">読み込み中...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <div style="margin-top: 20px;">
+            <a href="../index.html" style="color: #aaa; text-decoration: none; font-size: 0.9rem;">← サイトに戻る</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // サーバーからユーザーリストを取得する関数
+            try {
+                const response = await fetch('http://YOUR_UBUNTU_IP:3000/api/admin/users', {
+                    headers: {
+                        'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('取得失敗');
+
+                const users = await response.json();
+                const tbody = document.getElementById('userTableBody');
+                tbody.innerHTML = '';
+
+                users.forEach(user => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${user.id}</td>
+                        <td><strong>${user.username}</strong></td>
+                        <td>${user.role || 'User'}</td>
+                        <td style="color: #666;">${user.last_login || '---'}</td>
+                        <td>
+                            <a href="user_edit.html?id=${user.id}" class="action-btn edit-btn">編集</a>
+                            <button onclick="deleteUser(${user.id})" class="action-btn delete-btn">削除</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error(err);
+                document.getElementById('userTableBody').innerHTML = '<tr><td colspan="5" style="text-align: center; color: #ff4444;">エラー: データの取得に失敗しました。</td></tr>';
+            }
+        });
+
+        async function deleteUser(id) {
+            if (!confirm('このユーザーを削除してもよろしいですか？')) return;
+            
+            // 削除処理のAPI呼び出しをここに実装
+            alert('ID: ' + id + ' の削除リクエストを送信しました（実装中）');
+        }
+    </script>
+</body>
+</html>

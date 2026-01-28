@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新規ユーザー作成 - Admin</title>
+    <link rel="stylesheet" href="../system/css/main.css">
+    <script src="../system/js/common.js" defer></script>
+    <style>
+        .form-container {
+            max-width: 500px;
+            margin: 60px auto;
+            padding: 2rem;
+            background-color: #121212;
+            border: 1px solid #333;
+            border-radius: 12px;
+        }
+        .form-header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .form-header h2 { color: #fff; }
+        .input-group { margin-bottom: 1.5rem; }
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #888;
+            font-size: 0.9rem;
+        }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: #000;
+            border: 1px solid #444;
+            border-radius: 6px;
+            color: #fff;
+            outline: none;
+        }
+        .input-group input:focus { border-color: #00f0ff; }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 2rem;
+        }
+        .submit-btn {
+            flex: 2;
+            background-color: #00f0ff;
+            color: #000;
+            font-weight: bold;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .back-btn {
+            flex: 1;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            text-decoration: none;
+            padding: 0.8rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        .submit-btn:hover { opacity: 0.8; }
+        .success-msg { color: #00ff88; text-align: center; display: none; margin-top: 1rem; }
+    </style>
+</head>
+<body class="dark-theme">
+    <div class="form-container">
+        <div class="form-header">
+            <h2>新規ユーザー登録</h2>
+            <p style="font-size: 0.8rem; color: #666;">新しいアカウントを発行します</p>
+        </div>
+
+        <form id="userCreateForm">
+            <div class="input-group">
+                <label for="newUsername">ユーザー名</label>
+                <input type="text" id="newUsername" required placeholder="例: user_01">
+            </div>
+            <div class="input-group">
+                <label for="newPassword">初期パスワード</label>
+                <input type="password" id="newPassword" required placeholder="••••••••">
+            </div>
+            <div class="input-group">
+                <label for="userRole">権限設定</label>
+                <select id="userRole">
+                    <option value="user">一般ユーザー (User)</option>
+                    <option value="admin">管理者 (Admin)</option>
+                </select>
+            </div>
+
+            <div class="btn-group">
+                <a href="index.html" class="back-btn">戻る</a>
+                <button type="submit" class="submit-btn">ユーザーを作成する</button>
+            </div>
+            <div id="successMsg" class="success-msg">ユーザーの作成に成功しました！</div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('userCreateForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('newUsername').value;
+            const password = document.getElementById('newPassword').value;
+            const role = document.getElementById('userRole').value;
+            const successMsg = document.getElementById('successMsg');
+
+            try {
+                // Ubuntuサーバーへ新規登録リクエストを送信
+                const response = await fetch('http://YOUR_UBUNTU_IP:3000/api/admin/create-user', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ username, password, role })
+                });
+
+                if (response.ok) {
+                    successMsg.style.display = 'block';
+                    document.getElementById('userCreateForm').reset();
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1500);
+                } else {
+                    const data = await response.json();
+                    alert('エラー: ' + (data.message || '作成に失敗しました'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('サーバーに接続できませんでした。');
+            }
+        });
+    </script>
+</body>
+</html>

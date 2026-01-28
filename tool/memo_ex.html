@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>メモ帳 (拡張版) - Useful Tool Site</title>
+    <link rel="stylesheet" href="../system/css/main.css">
+    <link rel="stylesheet" href="../system/css/tetris.css">
+    <script src="../system/js/common.js" defer></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="../system/js/tetris_engine.js" defer></script>
+    <script src="../system/js/tetris_network.js" defer></script>
+</head>
+<body class="dark-theme" style="overflow: hidden;">
+
+    <div id="memo-wrapper">
+        <div style="display: flex; justify-content: space-between; padding: 5px 10px; background: #1a1a1a; font-size: 12px; border-bottom: 1px solid #333;">
+            <span>memo_ex_v2.0.txt</span>
+            <span>UTF-8 | Line: 1, Col: 1</span>
+        </div>
+        <textarea id="dummy-textarea" placeholder="ここにメモを入力してください..."></textarea>
+    </div>
+
+    <div id="tetris-stage">
+        <div class="side-panel">
+            <div class="panel-box">
+                <h4>HOLD</h4>
+                <canvas id="hold-canvas" width="100" height="100"></canvas>
+            </div>
+            <div class="panel-box" style="margin-top: 100px;">
+                <h4 id="mode-display">OFFLINE</h4>
+                <div id="score-display">Score: 0</div>
+                <div id="combo-display"></div>
+            </div>
+        </div>
+
+        <div class="main-game-area">
+            <div style="display: flex;">
+                <div id="garbage-gauge"><div id="garbage-fill" style="height: 0%;"></div></div>
+                <canvas id="my-board" width="300" height="600"></canvas>
+            </div>
+        </div>
+
+        <div class="side-panel">
+            <div class="panel-box">
+                <h4>NEXT</h4>
+                <canvas id="next-canvas" width="100" height="300"></canvas>
+            </div>
+            <div id="opponents-grid">
+                </div>
+        </div>
+
+        <div id="game-menu" style="display:none; position:absolute; background: rgba(0,0,0,0.9); padding: 40px; border: 2px solid #555; text-align: center; z-index: 2000;">
+            <h2 style="margin-bottom: 20px;">PAUSED</h2>
+            <button onclick="toggleMenu()" class="btn-primary" style="width: 100%; margin-bottom: 10px;">再開する</button>
+            <button onclick="location.reload()" class="btn-secondary" style="width: 100%; margin-bottom: 10px;">リスタート</button>
+            <button onclick="startOnline()" id="online-btn" class="btn-secondary" style="width: 100%; background: #a000f0;">オンライン対戦開始</button>
+            <p style="font-size: 10px; color: #555; margin-top: 20px;">Press ESC to Resume</p>
+        </div>
+    </div>
+
+    <script>
+        let engine;
+        let network;
+        let isGameActive = false;
+
+        // 隠しコマンドの判定 (Ctrl + Shift + T)
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && e.key === 'T') {
+                e.preventDefault();
+                showGame();
+            }
+
+            // Escキーでメニュー開閉
+            if (e.key === 'Escape' && isGameActive) {
+                toggleMenu();
+            }
+        });
+
+        function showGame() {
+            document.getElementById('memo-wrapper').style.display = 'none';
+            document.getElementById('tetris-stage').style.display = 'flex';
+            isGameActive = true;
+            
+            if (!engine) {
+                initGame();
+            }
+        }
+
+        function initGame() {
+            // エンジンの初期化
+            engine = new TetrisEngine('my-board', true);
+            // 描画ループ開始
+            requestAnimationFrame(gameLoop);
+        }
+
+        function gameLoop() {
+            if (isGameActive && !document.getElementById('game-menu').style.display === 'block') {
+                engine.draw();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        function toggleMenu() {
+            const menu = document.getElementById('game-menu');
+            menu.style.display = (menu.style.display === 'none') ? 'block' : 'none';
+        }
+
+        async function startOnline() {
+            const roomId = prompt("部屋IDを入力してください", "1234");
+            if (!roomId) return;
+
+            network = new TetrisNetwork(engine);
+            network.connect();
+            network.socket.emit('join-room', { roomId });
+            
+            document.getElementById('mode-display').textContent = "ONLINE: " + roomId;
+            document.getElementById('online-btn').disabled = true;
+            document.getElementById('online-btn').textContent = "接続済み";
+            toggleMenu();
+        }
+    </script>
+</body>
+</html>

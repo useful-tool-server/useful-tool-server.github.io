@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>単位変換ツール - Useful Tool Site</title>
+    <link rel="stylesheet" href="../system/css/main.css">
+    <style>
+        .converter-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: #1a1a1a;
+            color: #888;
+            border: 1px solid #333;
+            border-radius: 20px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: 0.3s;
+        }
+
+        .tab-btn.active {
+            background: #00f0ff;
+            color: #000;
+            border-color: #00f0ff;
+            font-weight: bold;
+        }
+
+        .converter-card {
+            background: #121212;
+            padding: 40px;
+            border-radius: 15px;
+            border: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .input-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            background: #000;
+            border: 1px solid #444;
+            color: #fff;
+            font-size: 1.5rem;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .input-group select {
+            padding: 10px;
+            background: #1a1a1a;
+            color: #ccc;
+            border: 1px solid #333;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .exchange-icon {
+            font-size: 2rem;
+            color: #444;
+        }
+
+        @media (max-width: 600px) {
+            .converter-card { flex-direction: column; }
+            .exchange-icon { transform: rotate(90deg); }
+        }
+    </style>
+</head>
+<body class="dark-theme">
+    <header>
+        <div class="header-container">
+            <a href="../index.html" style="text-decoration:none; color:#fff;"><h1>Unit Converter</h1></a>
+        </div>
+    </header>
+
+    <main class="converter-container">
+        <div class="category-tabs" id="tabContainer">
+            <button class="tab-btn active" onclick="setCategory('length')">長さ</button>
+            <button class="tab-btn" onclick="setCategory('weight')">重さ</button>
+            <button class="tab-btn" onclick="setCategory('area')">面積</button>
+            <button class="tab-btn" onclick="setCategory('volume')">体積</button>
+        </div>
+
+        <div class="converter-card">
+            <div class="input-group">
+                <select id="unitLeft" onchange="convert('left')"></select>
+                <input type="number" id="valLeft" value="1" oninput="convert('left')">
+            </div>
+
+            <div class="exchange-icon">⇌</div>
+
+            <div class="input-group">
+                <select id="unitRight" onchange="convert('right')"></select>
+                <input type="number" id="valRight" oninput="convert('right')">
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const units = {
+            length: {
+                mm: 1, cm: 10, m: 1000, km: 1000000, inch: 25.4, ft: 304.8, yard: 914.4, mile: 1609344
+            },
+            weight: {
+                mg: 1, g: 1000, kg: 1000000, t: 1000000000, oz: 28349.5, lb: 453592
+            },
+            area: {
+                m2: 1, a: 100, ha: 10000, km2: 1000000, tsubo: 3.305785, sq_ft: 0.092903
+            },
+            volume: {
+                ml: 1, l: 1000, m3: 1000000, cup: 200, gallon: 3785.41
+            }
+        };
+
+        let currentCategory = 'length';
+
+        function setCategory(cat) {
+            currentCategory = cat;
+            // タブの見た目更新
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.innerText === getCatName(cat));
+            });
+            // セレクトボックスの初期化
+            initSelects();
+            convert('left');
+        }
+
+        function getCatName(cat) {
+            const names = {length: '長さ', weight: '重さ', area: '面積', volume: '体積'};
+            return names[cat];
+        }
+
+        function initSelects() {
+            const left = document.getElementById('unitLeft');
+            const right = document.getElementById('unitRight');
+            left.innerHTML = '';
+            right.innerHTML = '';
+
+            Object.keys(units[currentCategory]).forEach((unit, index) => {
+                const opt1 = new Option(unit, unit);
+                const opt2 = new Option(unit, unit);
+                left.add(opt1);
+                right.add(opt2);
+                if(index === 1) right.selectedIndex = 1; // 別の単位を初期選択
+            });
+        }
+
+        function convert(source) {
+            const valLeft = document.getElementById('valLeft');
+            const valRight = document.getElementById('valRight');
+            const unitLeft = document.getElementById('unitLeft').value;
+            const unitRight = document.getElementById('unitRight').value;
+
+            const catUnits = units[currentCategory];
+
+            if (source === 'left') {
+                // 左から右へ計算: (左の値 * 左の係数) / 右の係数
+                const baseValue = parseFloat(valLeft.value) * catUnits[unitLeft];
+                valRight.value = (baseValue / catUnits[unitRight]).toFixed(4).replace(/\.?0+$/, "");
+            } else {
+                // 右から左へ計算
+                const baseValue = parseFloat(valRight.value) * catUnits[unitRight];
+                valLeft.value = (baseValue / catUnits[unitLeft]).toFixed(4).replace(/\.?0+$/, "");
+            }
+        }
+
+        // 初期化
+        initSelects();
+        convert('left');
+    </script>
+</body>
+</html>

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カスタムルーレット - Useful Tool Site</title>
+    <link rel="stylesheet" href="../system/css/main.css">
+    <style>
+        .roulette-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .main-layout {
+            display: flex;
+            gap: 40px;
+            margin-top: 20px;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* ルーレット盤面 */
+        .wheel-area {
+            position: relative;
+            width: 400px;
+            height: 400px;
+        }
+
+        #wheel-canvas {
+            border-radius: 50%;
+            border: 5px solid #333;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        /* 針（インジケーター） */
+        .arrow {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #ff4444;
+            z-index: 10;
+        }
+
+        /* 設定エリア */
+        .settings-area {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            min-width: 300px;
+        }
+
+        .input-group { margin-bottom: 10px; }
+        .input-group input {
+            padding: 8px;
+            background: #000;
+            border: 1px solid #444;
+            color: #fff;
+            width: 180px;
+        }
+
+        .item-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+        }
+
+        .item-tag {
+            display: inline-block;
+            background: #333;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin: 3px;
+            font-size: 0.85rem;
+        }
+
+        .item-tag span {
+            margin-left: 8px;
+            cursor: pointer;
+            color: #ff4444;
+        }
+
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .result-display {
+            margin-top: 20px;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00f0ff;
+            height: 3rem;
+        }
+    </style>
+</head>
+<body class="dark-theme">
+    <header>
+        <div class="header-container">
+            <a href="../index.html" style="text-decoration:none; color:#fff;"><h1>Roulette Tool</h1></a>
+            <button onclick="toggleFullScreen()" class="btn-secondary">全画面表示</button>
+        </div>
+    </header>
+
+    <main class="roulette-container">
+        <div id="result" class="result-display"></div>
+
+        <div class="main-layout">
+            <div class="wheel-area">
+                <div class="arrow"></div>
+                <canvas id="wheel-canvas" width="400" height="400"></canvas>
+            </div>
+
+            <div class="settings-area">
+                <h3>項目設定</h3>
+                <div class="input-group">
+                    <input type="text" id="item-input" placeholder="項目名を入力">
+                    <button onclick="addItem()" class="btn-primary">追加</button>
+                </div>
+                <div id="item-list-container" class="item-list"></div>
+                
+                <div class="controls">
+                    <button id="spin-btn" onclick="spin()" class="btn-primary" style="padding: 15px 40px; font-size: 1.2rem; background:#00f0ff; color:#000;">SPIN!</button>
+                    <button onclick="resetItems()" class="btn-secondary">リセット</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const canvas = document.getElementById('wheel-canvas');
+        const ctx = canvas.getContext('2d');
+        const resultDiv = document.getElementById('result');
+        let items = ["おにぎり", "パスタ", "ラーメン", "カレー", "うどん"];
+        let currentRotation = 0;
+        let isSpinning = false;
+
+        function drawWheel() {
+            const numItems = items.length;
+            const arcSize = (2 * Math.PI) / numItems;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            items.forEach((item, i) => {
+                const angle = i * arcSize + currentRotation;
+                
+                // セグメント描画
+                ctx.beginPath();
+                ctx.fillStyle = `hsl(${(i * 360 / numItems)}, 70%, 50%)`;
+                ctx.moveTo(200, 200);
+                ctx.arc(200, 200, 200, angle, angle + arcSize);
+                ctx.fill();
+                ctx.stroke();
+
+                // テキスト描画
+                ctx.save();
+                ctx.translate(200, 200);
+                ctx.rotate(angle + arcSize / 2);
+                ctx.textAlign = "right";
+                ctx.fillStyle = "#fff";
+                ctx.font = "bold 16px Arial";
+                ctx.fillText(item, 180, 5);
+                ctx.restore();
+            });
+        }
+
+        function addItem() {
+            const input = document.getElementById('item-input');
+            if (input.value.trim()) {
+                items.push(input.value.trim());
+                input.value = "";
+                updateItemList();
+                drawWheel();
+            }
+        }
+
+        function updateItemList() {
+            const container = document.getElementById('item-list-container');
+            container.innerHTML = items.map((item, i) => `
+                <div class="item-tag">${item}<span onclick="removeItem(${i})">×</span></div>
+            `).join('');
+        }
+
+        function removeItem(index) {
+            items.splice(index, 1);
+            updateItemList();
+            drawWheel();
+        }
+
+        function resetItems() {
+            items = [];
+            updateItemList();
+            drawWheel();
+        }
+
+        function spin() {
+            if (isSpinning || items.length < 2) return;
+            isSpinning = true;
+            resultDiv.textContent = "";
+
+            const spinDuration = 3000;
+            const startRotation = currentRotation;
+            const extraSpins = Math.random() * 10 + 10; // 10〜20回転
+            const targetRotation = startRotation + extraSpins * Math.PI * 2;
+            const startTime = performance.now();
+
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / spinDuration, 1);
+                
+                // イージング（減速）
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                currentRotation = startRotation + (targetRotation - startRotation) * easeOut;
+
+                drawWheel();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    isSpinning = false;
+                    determineResult();
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        function determineResult() {
+            const numItems = items.length;
+            const arcSize = (2 * Math.PI) / numItems;
+            
+            // 針（真上 -PI/2）の位置にある項目を計算
+            let normalizedRotation = (currentRotation % (Math.PI * 2));
+            let index = Math.floor((Math.PI * 1.5 - normalizedRotation) / arcSize) % numItems;
+            if (index < 0) index += numItems;
+
+            resultDiv.textContent = "結果: " + items[index];
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        updateItemList();
+        drawWheel();
+    </script>
+</body>
+</html>

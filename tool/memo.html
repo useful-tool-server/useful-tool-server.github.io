@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>クイックメモ - Useful Tool Site</title>
+    <link rel="stylesheet" href="../system/css/main.css">
+    <style>
+        .memo-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+        .memo-area {
+            width: 100%;
+            height: 70vh;
+            background-color: #1a1a1a;
+            color: #eee;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+        }
+        .memo-area:focus {
+            border-color: #555;
+        }
+        .status-bar {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            color: #888;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body class="dark-theme">
+    <header>
+        <div class="header-container">
+            <a href="../index.html" style="text-decoration: none; color: #fff;"><h1>Simple Memo</h1></a>
+            <div id="save-indicator" style="font-size: 0.8rem; color: #00ff88; opacity: 0;">保存完了</div>
+        </div>
+    </header>
+
+    <main class="memo-container">
+        <textarea id="memoInput" class="memo-area" placeholder="ここにメモを入力してください。内容は自動的に保存されます..."></textarea>
+        <div class="status-bar">
+            <span id="charCount">文字数: 0</span>
+            <span>保存先: ローカルストレージ</span>
+        </div>
+    </main>
+
+    <script>
+        const memoInput = document.getElementById('memoInput');
+        const charCount = document.getElementById('charCount');
+        const saveIndicator = document.getElementById('save-indicator');
+
+        // 1. 読み込み処理
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedData = localStorage.getItem('tool_site_memo');
+            if (savedData) {
+                memoInput.value = savedData;
+                updateStatus();
+            }
+        });
+
+        // 2. 保存処理 (入力のたびに実行)
+        memoInput.addEventListener('input', () => {
+            localStorage.setItem('tool_site_memo', memoInput.value);
+            updateStatus();
+            showIndicator();
+        });
+
+        function updateStatus() {
+            charCount.textContent = `文字数: ${memoInput.value.length}`;
+        }
+
+        // 保存したことを一瞬だけ表示する
+        let timer;
+        function showIndicator() {
+            saveIndicator.style.opacity = '1';
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+                saveIndicator.style.opacity = '0';
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

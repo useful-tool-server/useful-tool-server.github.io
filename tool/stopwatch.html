@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ストップウォッチ - Useful Tool Site</title>
+    <link rel="stylesheet" href="../system/css/main.css">
+    <style>
+        .stopwatch-container {
+            max-width: 600px;
+            margin: 60px auto;
+            text-align: center;
+        }
+
+        .display {
+            font-family: 'Consolas', monospace;
+            font-size: 5rem;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 40px;
+            background: #121212;
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid #333;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+            min-width: 140px;
+        }
+
+        #startStopBtn { background-color: #00f0ff; color: #000; }
+        #startStopBtn.running { background-color: #ff4444; color: #fff; }
+        #lapResetBtn { background-color: #333; color: #fff; }
+
+        .btn:hover { opacity: 0.8; }
+
+        /* ラップタイムリスト */
+        .lap-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border-top: 1px solid #333;
+            padding-top: 20px;
+        }
+
+        .lap-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            border-bottom: 1px solid #222;
+            color: #aaa;
+        }
+
+        .lap-item .lap-num { color: #888; }
+        .lap-item .lap-time { color: #fff; font-family: monospace; }
+    </style>
+</head>
+<body class="dark-theme">
+    <header>
+        <div class="header-container">
+            <a href="../index.html" style="text-decoration:none; color:#fff;"><h1>Stopwatch</h1></a>
+        </div>
+    </header>
+
+    <main class="stopwatch-container">
+        <div class="display" id="display">00:00:00.00</div>
+
+        <div class="controls">
+            <button id="startStopBtn" class="btn" onclick="toggleStartStop()">START</button>
+            <button id="lapResetBtn" class="btn" onclick="handleLapReset()">LAP</button>
+        </div>
+
+        <div class="lap-list" id="lapList">
+            </div>
+    </main>
+
+    <script>
+        let startTime;
+        let elapsedTime = 0;
+        let timerId;
+        let isRunning = false;
+        let laps = [];
+
+        const display = document.getElementById('display');
+        const startStopBtn = document.getElementById('startStopBtn');
+        const lapResetBtn = document.getElementById('lapResetBtn');
+        const lapList = document.getElementById('lapList');
+
+        function updateTime() {
+            const now = Date.now();
+            const diff = now - startTime + elapsedTime;
+            display.textContent = formatTime(diff);
+        }
+
+        function formatTime(ms) {
+            const hours = Math.floor(ms / 3600000);
+            const minutes = Math.floor((ms % 3600000) / 60000);
+            const seconds = Math.floor((ms % 60000) / 1000);
+            const centiseconds = Math.floor((ms % 1000) / 10);
+
+            return (
+                String(hours).padStart(2, '0') + ':' +
+                String(minutes).padStart(2, '0') + ':' +
+                String(seconds).padStart(2, '0') + '.' +
+                String(centiseconds).padStart(2, '0')
+            );
+        }
+
+        function toggleStartStop() {
+            if (!isRunning) {
+                // スタート
+                startTime = Date.now();
+                timerId = setInterval(updateTime, 10);
+                isRunning = true;
+                startStopBtn.textContent = 'STOP';
+                startStopBtn.classList.add('running');
+                lapResetBtn.textContent = 'LAP';
+            } else {
+                // ストップ
+                clearInterval(timerId);
+                elapsedTime += Date.now() - startTime;
+                isRunning = false;
+                startStopBtn.textContent = 'START';
+                startStopBtn.classList.remove('running');
+                lapResetBtn.textContent = 'RESET';
+            }
+        }
+
+        function handleLapReset() {
+            if (isRunning) {
+                // LAP処理
+                const now = Date.now();
+                const currentDiff = now - startTime + elapsedTime;
+                addLap(formatTime(currentDiff));
+            } else {
+                // RESET処理
+                elapsedTime = 0;
+                display.textContent = '00:00:00.00';
+                laps = [];
+                lapList.innerHTML = '';
+                lapResetBtn.textContent = 'LAP';
+            }
+        }
+
+        function addLap(time) {
+            laps.unshift(time);
+            const div = document.createElement('div');
+            div.className = 'lap-item';
+            div.innerHTML = `
+                <span class="lap-num">LAP ${laps.length}</span>
+                <span class="lap-time">${time}</span>
+            `;
+            lapList.prepend(div);
+        }
+    </script>
+</body>
+</html>

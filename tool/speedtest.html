@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スピードテスト - Useful Tool Site</title>
+    <link rel="stylesheet" href="../system/css/main.css">
+    <style>
+        .speed-container {
+            max-width: 600px;
+            margin: 40px auto;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        /* メーター部分 */
+        .gauge-wrapper {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto 30px;
+        }
+
+        #speed-gauge {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .speed-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .speed-value .num {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #fff;
+            display: block;
+        }
+
+        .speed-value .unit {
+            font-size: 1.2rem;
+            color: #888;
+        }
+
+        /* 詳細データ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #121212;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #333;
+        }
+
+        .stat-card .label { font-size: 0.9rem; color: #888; display: block; }
+        .stat-card .val { font-size: 1.5rem; color: #00f0ff; font-weight: bold; }
+
+        .start-btn {
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 15px 60px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .start-btn:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="dark-theme">
+    <header>
+        <div class="header-container">
+            <a href="../index.html" style="text-decoration:none; color:#fff;"><h1>Speed Test</h1></a>
+        </div>
+    </header>
+
+    <main class="speed-container">
+        <div class="gauge-wrapper">
+            <svg id="speed-gauge">
+                <circle cx="150" cy="150" r="130" fill="none" stroke="#222" stroke-width="15" />
+                <circle id="progress-bar" cx="150" cy="150" r="130" fill="none" stroke="#00f0ff" stroke-width="15" 
+                        stroke-dasharray="816" stroke-dashoffset="816" stroke-linecap="round" transition="0.3s" />
+            </svg>
+            <div class="speed-value">
+                <span id="main-speed" class="num">0</span>
+                <span class="unit">Mbps</span>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="label">PING</span>
+                <span id="ping-val" class="val">--</span> <small>ms</small>
+            </div>
+            <div class="stat-card">
+                <span class="label">DOWNLOAD</span>
+                <span id="dl-val" class="val">--</span> <small>Mbps</small>
+            </div>
+        </div>
+
+        <button id="start-btn" class="start-btn" onclick="startTest()">TEST START</button>
+    </main>
+
+    <script>
+        const progressBar = document.getElementById('progress-bar');
+        const mainSpeedDisplay = document.getElementById('main-speed');
+        const pingDisplay = document.getElementById('ping-val');
+        const dlDisplay = document.getElementById('dl-val');
+        const startBtn = document.getElementById('start-btn');
+
+        // テスト用ダミーデータURL (Googleのライブラリ等、公開されている大きいファイルを利用)
+        const testFile = "https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js?cachebuster=";
+        const fileSizeInBytes = 90000; // jQuery minified size approx
+
+        async function startTest() {
+            startBtn.disabled = true;
+            mainSpeedDisplay.textContent = "0";
+            updateGauge(0);
+
+            // 1. PING測定
+            const ping = await measurePing();
+            pingDisplay.textContent = Math.floor(ping);
+
+            // 2. ダウンロード測定 (5回試行して平均をとる)
+            let speeds = [];
+            for(let i = 0; i < 5; i++) {
+                const speed = await measureDownloadSpeed();
+                speeds.push(speed);
+                mainSpeedDisplay.textContent = Math.floor(speed);
+                updateGauge(speed);
+                await new Promise(r => setTimeout(r, 200));
+            }
+
+            const avgSpeed = speeds.reduce((a, b) => a + b) / speeds.length;
+            dlDisplay.textContent = avgSpeed.toFixed(2);
+            mainSpeedDisplay.textContent = avgSpeed.toFixed(1);
+            updateGauge(avgSpeed);
+            
+            startBtn.disabled = false;
+        }
+
+        async function measurePing() {
+            const start = performance.now();
+            await fetch(testFile + Date.now(), { mode: 'no-cors' });
+            return performance.now() - start;
+        }
+
+        async function measureDownloadSpeed() {
+            const start = performance.now();
+            const response = await fetch(testFile + Date.now(), { mode: 'no-cors' });
+            const end = performance.now();
+            
+            const durationInSeconds = (end - start) / 1000;
+            const bitsLoaded = fileSizeInBytes * 8;
+            const speedBps = bitsLoaded / durationInSeconds;
+            const speedMbps = speedBps / (1024 * 1024);
+            
+            return speedMbps;
+        }
+
+        function updateGauge(speed) {
+            // 最大 100Mbps と想定して計算
+            const maxSpeed = 100;
+            const percentage = Math.min(speed / maxSpeed, 1);
+            const totalDash = 816; // 2 * PI * r (130)
+            const offset = totalDash - (totalDash * percentage);
+            progressBar.style.strokeDashoffset = offset;
+        }
+    </script>
+</body>
+</html>

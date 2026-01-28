@@ -21,7 +21,6 @@ const Auth = {
             return { success: false, message: 'サーバーに接続できません' };
         }
     },
-
     logout() {
         localStorage.clear();
         window.location.href = '/login.html';

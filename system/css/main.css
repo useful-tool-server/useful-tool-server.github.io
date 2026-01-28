@@ -1,0 +1,131 @@
+/* system/css/main.css */
+
+/* 基本リセット */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #000000; /* 真っ黒 */
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+}
+
+/* ヘッダー */
+header {
+    background-color: #121212;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid #333;
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+h1 {
+    font-size: 1.5rem;
+    color: #ffffff;
+    letter-spacing: 1px;
+}
+
+/* ヒーローセクション */
+#hero {
+    text-align: center;
+    padding: 4rem 1rem;
+    background: linear-gradient(180deg, #121212 0%, #000000 100%);
+}
+
+#hero h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: #fff;
+}
+
+/* ツールリスト (グリッド) */
+.grid-container {
+    max-width: 1200px;
+    margin: 0 auto 4rem auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 0 1.5rem;
+}
+
+/* ツールカード */
+.tool-card {
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s, border-color 0.2s, background-color 0.2s;
+}
+
+.tool-card:hover {
+    transform: translateY(-5px);
+    border-color: #555;
+    background-color: #222;
+}
+
+.tool-card .icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.tool-card h3 {
+    margin-bottom: 0.5rem;
+    color: #fff;
+}
+
+.tool-card p {
+    font-size: 0.9rem;
+    color: #aaa;
+}
+
+/* 隠しツールの特別スタイル（運営管理感） */
+.tool-card.secret {
+    border-left: 4px solid #444; /* ログイン時でも控えめなデザイン */
+}
+
+/* ボタン */
+.btn-primary, .btn-secondary {
+    padding: 0.5rem 1.2rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+}
+
+.btn-primary {
+    background-color: #ffffff;
+    color: #000;
+}
+
+.btn-secondary {
+    background-color: #333;
+    color: #fff;
+}
+
+/* フッター */
+footer {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+    font-size: 0.8rem;
+    border-top: 1px solid #222;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 600px) {
+    h1 { font-size: 1.2rem; }
+    #hero h2 { font-size: 1.8rem; }
+}
